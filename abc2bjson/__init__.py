@@ -1,4 +1,5 @@
 #!/usr/bin/env hython
+
 """
 Description:
 	This package automates the conversion of an Alembic file to the BJSON format
@@ -16,7 +17,7 @@ import chasmgeo as cg
 def main():
 	try:
 		# Choose Object to Import
-		a2b.getObjectToImport()
+		cg.getObjectToImport()
 
 		# Get Alembic file from user.
 		inputFile = a2b.getInputFile()
@@ -25,19 +26,20 @@ def main():
 		a2b.setAlembicNamespace(a2b.getNamespace())
 
 		# Get Output Directory. User selects from list of options
-		outDir = a2b.getOutputDir(a2b.getChasmShotList())
+		outDir = a2b.getOutputDir(cg.getChasmShotList())
 		
 		# Get Frame Range from user.
 		start, end, step = a2b.getFrameRange()
 		a2b.setFrameRange(start,end,step)
 		
 		# Set the Geometry Dictionary
-		a2b.setGeoDict(a2b.getGeoDict())
+		a2b.setGeoDict(cg.getGeoDict())
 		
 		# Generate geometry sequences    
 		a2b.abc2bjson(inputFile, outDir)
 
 		hou.ui.displayMessage("Finished conversion!")
+	
 	except Exception as e:
 		print "Exiting: " + str(e)
 	

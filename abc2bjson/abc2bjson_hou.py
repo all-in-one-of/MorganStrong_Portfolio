@@ -1,5 +1,3 @@
-#!/usr/bin/env hython
-
 """
 File:        abc2bjson_hou.py
 Author:      Taylor Sorenson, Morgan Strong, Elizabeth Brayton
@@ -18,15 +16,49 @@ import _alembic_hom_extensions
 import os
 import shutil
 
-## PRIVATE ##
-# Module Variables #
+################################################################################
+#
+# DATA
+#
+################################################################################
+
 _namespace = "stable"
 _geo_dict = {}
 _frame_start = 1
 _frame_end = 240
 _frame_step = 1
 
-# Validation Functions #
+
+################################################################################
+#
+# FUNCTIONS
+#
+################################################################################
+
+#
+# Sub-routines
+#
+
+def _prependNamespace(pcs):
+    """
+    Prepend the namespace to each level of a GeoDict.
+    """
+
+    if not _namespace:
+        return pcs
+    for key in pcs.keys():
+        path_list = pcs[key]
+        new_path_list = []
+        for geo_path in path_list:
+            new_path = ""
+            for x in geo_path.split("/"):
+                if not x:
+                    continue
+                new_path += "/" + _namespace + "_" + x
+            new_path_list.append(new_path)
+        pcs[key] = new_path_list
+    return pcs
+    
 def _isValidAlembic(p):
     ext = p[-4:]
     if ext.lower() == ".abc":
@@ -34,15 +66,13 @@ def _isValidAlembic(p):
     else:
         hou.ui.displayMessage("Please Select an Alembic (.abc) file.")
         return False
-
-# Subprocess Functions #
-# 
+ 
 def _generateOutput(iSOP, outDir, name):
-	"""
-	Write out the geometry sequence to the specified folder, adjusting frame
-	numbers to account for 100 frame pre-roll on all shots.
-	"""
-	
+  """
+  Write out the geometry sequence to the specified folder, adjusting frame
+  numbers to account for 100 frame pre-roll on all shots.
+  """
+  
     # Ensure Output Directory Exists
     if not os.path.exists(outDir):
         os.makedirs(outDir)
@@ -65,14 +95,24 @@ def _generateOutput(iSOP, outDir, name):
     geoROP.render()
     geoROP.destroy()
 
-## PUBLIC FUNCTIONS##
-# Module Options #
+def _cleanOutputDir(outdir):
+    #cleanup output folder
+    for root, dirs, files in os.walk(outdir):
+        for f in files:
+            os.unlink(os.path.join(root, f))
+        for d in dirs:
+            shutil.rmtree(os.path.join(root, d))
+
+#
+# Setters
+#
+
 def setAlembicNamespace(n):
     global _namespace
     _namespace = n
 	
 def setGeoDict(d):
-    """
+  """
 	Define the Geometry Dictionary where key-value pairs are equivalent to:
     bjson_output -> [abc_group_path*]
     (str)        -> [(str)*]
@@ -82,112 +122,28 @@ def setGeoDict(d):
                                                          "/car_model/tire2",\
                                                          "/car_model/tire3",\
                                                          "/car_model/tire4"]}
-    """
+  """
 	global _geo_dict
     _geo_dict = d
 	
-def setFrameRange(s,e,p=1):
+def setFrameRange(s, e, p=1):
     global _frame_start
     global _frame_end
     global _frame_step
     _frame_start = s
     _frame_end = e
     _frame_step = p
-    
-# Houdini UI #
-# Return the path to the .abc file to be read.
-def getInputFile():
-    inputFile = ''
-    while(not _isValidAlembic(inputFile)):
-        inputFile = hou.ui.selectFile(start_directory = None,\
-                                      title = "Select Alembic (.abc) File",\
-                                      collapse_sequences = False,\
-                                      pattern = ('*.abc'),\
-                                      multiple_select = False,\
-                                      chooser_mode = hou.fileChooserMode.Read)
-        if inputFile == '':
-            raise Exception("No input file chosen. Exiting...")
-    return hou.expandString(inputFile)
 
-# Return the path to the export directory. Allows either a list of choices to
-# be displayed or a file select dialog.
-def getOutputDir(choices=None):
-    #print (choices)
-    if choices:
-        c = hou.ui.selectFromList(choices,\
-                                  exclusive = True,\
-                                  title = 'Choose Directory',\
-                                  num_visible_rows = 10)
-        if not c:
-            raise Exception("No Output Folder Selected. Exiting...")
-        return hou.expandString(_interpretChoice(choices[c[0]]))
-    else:
-        outDir = ""
-        while(not os.path.isdir(hou.expandString(outDir))):
-            outDir = hou.ui.selectFile(start_directory = None,\
-                                       title = "Select Output Folder",\
-                                       collapse_sequences = False,\
-                                       pattern = ('*'),\
-                                       multiple_select = False,\
-                                       chooser_mode = hou.fileChooserMode.Read)
-            if outDir == '':
-                return outDir
-        return hou.expandString(outDir)
+#
+# Core
+#
 
-# Return a list of 3 values: Start Frame, End Frame, Step
-def getFrameRange():
-    rfstart = hou.expandString("$RFSTART")
-    rfend = hou.expandString("$RFEND")
-    ui = hou.ui.readMultiInput("Input Frame Range.",\
-                               ["Start Frame","End Frame","Step"],\
-                               buttons=["OK","Cancel"],\
-                               default_choice=0,\
-                               close_choice=1,\
-                               help="Enter the Frame Range that you exported.\n\
-                                     (Ex: If you exported frames 92 to 305 from Maya, input 92 and 305).",\
-                               title="Input Frame Range.",\
-                               initial_contents=[str(rfstart),str(rfend),str("1")])
-    if ui[0]:
-        raise Exception("Cancelling...")
-    return [ui[1][0], ui[1][1], ui[1][2]]
+def abc2bjson(infile, outdir='$TEMP/'):
+    """
+    Use Alembic SOPs to output chunks of geometry from the Alembic file as bjson
+    geometry sequences.
+    """
 
-# Return the user-specified namespace to be prepended to the object paths during conversion.
-def getNamespace():
-    ui = hou.ui.readInput("Please provide the namespace used when \nthe .abc file was exported.  \
-                           (Ex: If your animation file \nreferenced the 'stable' link, the namespace is 'stable').",\
-                        buttons=["OK","Cancel"],
-                        default_choice=0,\
-                        close_choice=1,\
-                        initial_contents="stable")
-    if ui[0]:
-        raise Exception("Cancelling...")
-    return ui[1]
-
-# Return the user-specified, predefined object they will be exporting from the Alembic file.
-def getObjectToImport():
-    choices = _objects.keys()
-    #print (choices)
-    c = hou.ui.selectFromList(choices,\
-                               exclusive = True,\
-                               title = 'Choose the object you are trying to import',\
-                               num_visible_rows = len(choices))
-    if not c:
-        raise Exception("Nothing Selected. Exiting...")
-    #print(choices[c[0]])
-    global _objectName
-    _objectName = _objects.get(choices[c[0]])
-
-# Remove contents of output directory.
-def _cleanOutputDir(outdir):
-    #cleanup output folder
-    for root, dirs, files in os.walk(outdir):
-        for f in files:
-            os.unlink(os.path.join(root, f))
-        for d in dirs:
-            shutil.rmtree(os.path.join(root, d))
-
-## Main Function ##
-def abc2bjson(infile, outdir = '$TEMP/'):
     # Clean outdir for fresh write
     #_cleanOutputDir(outdir)
 
@@ -223,3 +179,95 @@ def abc2bjson(infile, outdir = '$TEMP/'):
     
     # Clean Up
     temp_geo.destroy()
+
+
+################################################################################
+#
+# HOUDINI DIALOGS
+#
+################################################################################
+
+def getInputFile():
+    """
+    Open a Houdini File Select Dialog and return the path to the Alembic file to
+    be read. Raises an Exception if no file is chosen.
+    """
+    
+    inputFile = ''
+    while(not _isValidAlembic(inputFile)):
+        inputFile = hou.ui.selectFile(start_directory=None,\
+                                      title="Select Alembic (.abc) File",\
+                                      collapse_sequences=False,\
+                                      pattern=('*.abc'),\
+                                      multiple_select=False,\
+                                      chooser_mode=hou.fileChooserMode.Read)
+        if inputFile == '':
+            raise Exception("No input file chosen. Exiting...")
+    return hou.expandString(inputFile)
+
+def getOutputDir(choices=None):
+    """
+    Open a Houdini Dialog and return a path to the export directory.  Allows for
+    either a list of choices to be displayed or a file select dialog.
+    """
+
+    if choices:
+        c = hou.ui.selectFromList(choices,\
+                                  exclusive = True,\
+                                  title = 'Choose Directory',\
+                                  num_visible_rows = 10)
+        if not c:
+            raise Exception("No Output Folder Selected. Exiting...")
+        return hou.expandString(_interpretChoice(choices[c[0]]))
+    else:
+        outDir = ""
+        while(not os.path.isdir(hou.expandString(outDir))):
+            outDir = hou.ui.selectFile(start_directory = None,\
+                                       title = "Select Output Folder",\
+                                       collapse_sequences = False,\
+                                       pattern = ('*'),\
+                                       multiple_select = False,\
+                                       chooser_mode = hou.fileChooserMode.Read)
+            if outDir == '':
+                return outDir
+        return hou.expandString(outDir)
+
+def getFrameRange():
+    """
+    Use a Houdini Dialog to get from the user and return a 3-tuple in the form:
+    
+        (Start Frame, End Frame, Step)
+
+    Raise an Exception if no selection is made.
+    """
+
+    rfstart = hou.expandString("$RFSTART")
+    rfend = hou.expandString("$RFEND")
+    ui = hou.ui.readMultiInput("Input Frame Range.",\
+                               ["Start Frame","End Frame","Step"],\
+                               buttons=["OK","Cancel"],\
+                               default_choice=0,\
+                               close_choice=1,\
+                               help="Enter the Frame Range that you exported.\n\
+                                     (Ex: If you exported frames 92 to 305 from Maya, input 92 and 305).",\
+                               title="Input Frame Range.",\
+                               initial_contents=[str(rfstart),str(rfend),str("1")])
+    if ui[0]:
+        raise Exception("Cancelling...")
+    return (ui[1][0], ui[1][1], ui[1][2])
+
+def getNamespace():
+    """
+    Use a Houdini Dialog to return a namespace to be prepended to the object
+    paths during conversion. Raise an exception if "Cancel" is selected.
+    """
+
+    ui = hou.ui.readInput("Please provide the namespace used when \nthe .abc file was exported.  \
+                           (Ex: If your animation file \nreferenced the 'stable' link, the namespace is 'stable').",\
+                        buttons=["OK","Cancel"],
+                        default_choice=0,\
+                        close_choice=1,\
+                        initial_contents="stable")
+    if ui[0]:
+        raise Exception("Cancelling...")
+    return ui[1]

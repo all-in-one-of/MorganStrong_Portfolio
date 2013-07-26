@@ -1,7 +1,8 @@
 """
-Original Authors: Morgan Strong, Elizabeth Brayton
-Date:        11/26/12. Modified: 7/26/2013
-Project:     BYU Senior Animation: Chasm
+File:       chasmgeo.py
+Author:     Morgan Strong, Elizabeth Brayton
+Date:       11/26/12. Modified: 7/26/2013
+Project:    BYU Senior Animation: Chasm
 
 Description:
     Project specific definitions for the 2013 BYU Animated short: Chasm.
@@ -9,6 +10,14 @@ Description:
     included here for completeness and simplicity.
 
 """
+
+from abc2bjson_hou import prependNamespace
+
+################################################################################
+#
+# DATA
+#
+################################################################################
 
 _objectName = ""
 _objects = {
@@ -21,6 +30,13 @@ _objects = {
             'Workshop Shelf': 'shelf',
             'Wooden Stool': 'stool'
            }
+
+
+################################################################################
+#
+# GEOMETRY DICTIONARIES
+#
+################################################################################
 
 def getFrameGeoDict():
     BackShade = ['Picture_Frame/Backing']
@@ -276,25 +292,7 @@ def getAddisonGeoDict():
     pcs = prependNamespace(pcs)
     return pcs
 
-def prependNamespace(pcs):
-    # Prepend the namespace to each level of the geoemtry path hard coded above.
-    if not _namespace:
-        return pcs
-    for key in pcs.keys():
-        path_list = pcs[key]
-        new_path_list = []
-        for geo_path in path_list:
-            new_path = ""
-            for x in geo_path.split("/"):
-                if not x:
-                    continue
-                new_path += "/" + _namespace + "_" + x
-            new_path_list.append(new_path)
-        pcs[key] = new_path_list
-    return pcs
-
 def getGeoDict():
-    #print ("inGeoDict: " + _objectName)
     result = {}
     if _objectName == _objects["Wheel"]:
         result = getWheelGeoDict()
@@ -314,6 +312,13 @@ def getGeoDict():
         result = getShelfGeoDict()
     return result
 
+
+################################################################################
+#
+# SHOT LIST / LOCATIONS
+#
+################################################################################
+
 def getChasmShotList():
     A = ["A"+str(n).zfill(2) for n in range(1,12)]
     B = ["B"+str(n).zfill(2) for n in range(1,16)]
@@ -331,3 +336,26 @@ def _interpretChoice(shot_num):
                         "Animation_" + shot_num,\
                         _objectName + "_bjson") + os.sep
     return path
+
+
+################################################################################
+#
+# HOUDINI DIALOGS
+#
+################################################################################
+
+def getObjectToImport():
+    """
+    Return the user-specified, predefined object they will be exporting from the
+    Alembic file.
+    """
+    choices = _objects.keys()
+    c = hou.ui.selectFromList(choices,\
+                               exclusive = True,\
+                               title = 'Choose the object you are trying to import',\
+                               num_visible_rows = len(choices))
+    if not c:
+        raise Exception("Nothing Selected. Exiting...")
+    
+    global _objectName
+    _objectName = _objects.get(choices[c[0]])
