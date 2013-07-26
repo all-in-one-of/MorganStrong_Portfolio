@@ -12,7 +12,6 @@ contained in abc2bjson.__init__. Tested with H12.1.125.
 """
 
 import hou
-import _alembic_hom_extensions
 import os
 import shutil
 
