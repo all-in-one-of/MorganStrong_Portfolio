@@ -22,7 +22,8 @@ I am unable to post any of my web-development code at this time due to agreement
 with previous employers, but you can get a feel for the type/quality of work that
 I was assigned to do by viewing their website at [Qualtrics.com](http://www.qualtrics.com).
 Most work has been WordPress-based, but I've also interacted with Blogger, Tumblr, 
-and several other content management systems and templates.
+and several other content management systems and templates.  You can also view my
+website at [fxetc.wordpress.com](http://fxetc.wordpress.com).
 
 
 *NOTE: Many or all of these projects are collaborations with fellow coworkers/students and the code should not be regarded as exclusively mine.*
