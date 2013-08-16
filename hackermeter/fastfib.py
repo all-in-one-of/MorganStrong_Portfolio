@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Module: fastfib.py
 Author: Morgan Strong
@@ -43,8 +45,8 @@ def fib(n, data={0:0, 1:1, 2:1}):
     return r
    
 
-if __name__ == "main":
+if __name__ == "__main__":
     print("Print the first N elements of the Fibonacci Sequence.")
-    N = raw_input(int(("Enter an integer N > 0:")))
+    N = int(raw_input("Enter an integer N > 0:"))
     for i in range(N):
         print(fib(i))
