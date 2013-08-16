@@ -17,6 +17,9 @@ left in production. Simple usage documentation can be found [here](https://docs.
 This code has been further developed by continuing students at BYU. The github
 repository is available [here](https://github.com/byu-animation/byu-animation-tools).
 
+**hackermeter**
+These are semi-trivial coding projects done on hackermeter.com.
+
 **CSS**
 I am unable to post any of my web-development code at this time due to agreements
 with previous employers, but you can get a feel for the type/quality of work that
