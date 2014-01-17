@@ -28,5 +28,9 @@ Most work has been WordPress-based, but I've also interacted with Blogger, Tumbl
 and several other content management systems and templates.  You can also view my
 website at [fxetc.wordpress.com](http://fxetc.wordpress.com).
 
+**Gists**
+Please have a look at my [Gists](https://gist.github.com/rIZenAShes) for further (and often
+more recent) examples of my code.
 
-*NOTE: Many or all of these projects are collaborations with fellow coworkers/students and the code should not be regarded as exclusively mine.*
+
+*NOTE: The abc2bjson and assetmanager projects are collaborations with fellow coworkers/students and the code should not be regarded as exclusively mine.*
