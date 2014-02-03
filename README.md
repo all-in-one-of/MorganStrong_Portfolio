@@ -3,6 +3,13 @@ MorganStrong_Portfolio
 
 *Code Samples of all kinds - Python, CSS, etc.*
 
+**Universal Scene Description**
+A robust 3D scene description library with a high-level API for reading and authoring
+scenes following a novel layering paradigm developed by Pixar.  I've been working on
+this project at Pixar from October 2013 - March 2014.  Although code is currently
+unavailable, Pixar is guaging interest and strongly considering making USD open-source
+as they did with OpenSubdiv.  For more details, see their website [here](http://graphics.pixar.com/usd/).
+
 **abc2bjson**
 A Python Module used for conversion of Alembic files to BJSON sequences using
 Houdini.  Created for the BYU 2013 Animation: "Chasm" on H12.1.125 (before 
